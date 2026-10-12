@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1791831999331,
+      "tag": "0000_sturdy_morph",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791832112844,
+      "tag": "0001_lyrical_quasimodo",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791832122860,
+      "tag": "0002_search_indexes",
+      "breakpoints": true
+    }
+  ]
+}
