@@ -12,8 +12,11 @@ export async function entitlement(actor: Actor) {
     })
     .from(identityLinks)
     .where(eq(identityLinks.userId, actor.id));
+  const requireEcosystemLinks = process.env.AVSAR_REQUIRE_ECOSYSTEM_LINKS !== "false";
   return {
-    active: actor.role === "jobseeker" && canActivateJobseeker(links),
+    active:
+      actor.role === "jobseeker" &&
+      (requireEcosystemLinks ? canActivateJobseeker(links) : true),
     links: links.map((l) => ({
       provider: l.provider,
       status: l.status,
