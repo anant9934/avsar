@@ -1,18 +1,18 @@
 # AVSAR by AI Tathastu
 
-AVSAR is being rebuilt from an interactive prototype into a server-backed opportunity marketplace. The original static prototype is preserved in `prototype/`. The current Next.js implementation is **prelaunch**. It compiles and renders, but needs an AVSAR-owned Neon database and external identity contracts before genuine end-to-end hiring workflows are available.
+AVSAR is being rebuilt from an interactive prototype into a server-backed opportunity marketplace. The original static prototype is preserved in `prototype/`. The current Next.js implementation is **prelaunch**. The supplied AVSAR Neon database has been migrated, but external identity contracts and operational checks are still required before genuine end-to-end hiring workflows are available.
 
 ## Run locally
 
 ```bash
 npm ci
 cp .env.example .env.local
-# Configure AVSAR-owned Neon pooled runtime and direct migration URLs in .env.local
-npm run db:migrate:local
 npm run dev
 ```
 
-Visit `http://localhost:3000`. Public pages render without a database but search reports the service as unavailable. No sample opportunities are injected.
+Visit `http://localhost:3000`. Development and Vercel Preview show three fictional opportunities from server-side fixtures, even without a database. They are clearly labeled, have no application destination, and are excluded from the sitemap and search indexing. Production never serves these fixtures: its public search reads only approved, published rows from Neon and reports an outage if the database is unavailable. Database-backed development and Preview actions require `DATABASE_PREVIEW_URL` from a separate Neon branch; the production `DATABASE_URL` is ignored in those environments.
+
+To test database-backed preview workflows, create a separate Neon branch, set `DATABASE_PREVIEW_URL` to its pooled URL and `DATABASE_DIRECT_URL` to that **same branch's** direct URL, then run `npm run db:migrate:local`. If direct PostgreSQL TCP is unavailable but Neon HTTPS works, use `npm run db:migrate:http:local` instead. Never point a local migration command at the production direct URL while setting up demo browsing.
 
 ## Operator setup
 
@@ -21,6 +21,8 @@ Create an Admin account only after migrations, with `ADMIN_EMAIL`, a 16+ charact
 ```bash
 npm run admin:provision
 ```
+
+Use `npm run admin:provision:http:local` when the Neon HTTPS connection is available but direct PostgreSQL TCP is blocked. Both commands refuse to overwrite an existing account. `ADMIN_EMAIL` and `ADMIN_PASSWORD` are one-time local provisioning inputs, not Vercel runtime variables.
 
 Recruiter registration is self-service, but posting requires recorded organization review and separate listing review/publication. Jobseeker activation needs genuine signed Core and Collaborate federation; it is currently blocked. Do not insert fake identity links.
 

@@ -23,9 +23,11 @@ const tabs = [
 export function FeaturedTabs({
   groups,
   available,
+  demo = false,
 }: {
   groups: Record<string, FeaturedItem[]>;
   available: boolean;
+  demo?: boolean;
 }) {
   const [tab, setTab] = useState<string>(tabs[0]);
   const items = groups[tab] || [];
@@ -58,7 +60,7 @@ export function FeaturedTabs({
                 key={x.id}
               >
                 <span className="pill">
-                  {x.type} · {x.mode}
+                  {demo ? "DEMO · " : ""}{x.type} · {x.mode}
                 </span>
                 <h3>{x.title}</h3>
                 <p>{x.organization}</p>
@@ -76,7 +78,9 @@ export function FeaturedTabs({
                 )}
                 <span className="card-link">View Details ↗</span>
                 <span className="review-note">
-                  Organization approved · Listing reviewed
+                  {demo
+                    ? "Fictional example · No applications accepted"
+                    : "Organization approved · Listing reviewed"}
                 </span>
               </Link>
             ))}

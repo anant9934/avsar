@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { products, productHref } from "@/lib/public-content";
 import { publishedContent } from "@/lib/site-content";
+import { demoMode } from "@/lib/demo-opportunities";
 import "./globals.css";
 export const metadata: Metadata = {
   title: "AVSAR — Every Opportunity. A Fair Chance.",
   description:
     "Search reviewed jobs, internships, research and other opportunities on AVSAR by AI Tathastu.",
+  robots: demoMode ? { index: false, follow: false } : undefined,
 };
 const footerGroups = [
   {
@@ -130,8 +132,9 @@ export default async function RootLayout({
           </div>
         </header>
         <div className="prelaunch-banner" role="status">
-          AVSAR is a prelaunch prototype. Public browsing is open; verified
-          Core and Collaborate linking and internal applications are unavailable.
+          {demoMode
+            ? "DEMO PREVIEW: All displayed opportunities are fictional examples. No applications are accepted. Core and Collaborate linking is unavailable."
+            : "AVSAR is a prelaunch prototype. Public browsing is open; verified Core and Collaborate linking and internal applications are unavailable."}
         </div>
         <main id="main-content">{children}</main>
         <footer className="footer">

@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { searchOpportunities } from "@/lib/opportunities";
 import { EventPing } from "@/components/EventPing";
+import { demoMode } from "@/lib/demo-opportunities";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Find Opportunities | AVSAR",
@@ -36,8 +37,9 @@ export default async function Opportunities({ searchParams }: Props) {
           <span className="eyebrow">THE OPPORTUNITY MARKETPLACE</span>
           <h1>Find your next opening.</h1>
           <p>
-            Search public listings freely. Each active result passed
-            organization and listing review.
+            {demoMode
+              ? "These are fictional examples for development and preview. They are not open positions or approved organizations."
+              : "Search public listings freely. Each active result passed organization and listing review."}
           </p>
         </div>
       </div>
@@ -115,7 +117,7 @@ export default async function Opportunities({ searchParams }: Props) {
                 key={x.id}
               >
                 <div>
-                  <span className="pill">{x.type}</span>
+                  <span className="pill">{demoMode ? "DEMO · " : ""}{x.type}</span>
                   <span className="result-mode">{x.mode}</span>
                 </div>
                 <h3>{x.title}</h3>

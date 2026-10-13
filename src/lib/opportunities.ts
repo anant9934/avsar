@@ -13,6 +13,11 @@ import {
 } from "drizzle-orm";
 import { db } from "@/db";
 import { opportunities, organizations } from "@/db/schema";
+import {
+  demoMode,
+  getDemoOpportunity,
+  searchDemoOpportunities,
+} from "@/lib/demo-opportunities";
 export function visibleConditions() {
   return and(
     eq(opportunities.status, "published"),
@@ -49,6 +54,7 @@ export function searchConditions(params: URLSearchParams) {
   return and(...clauses)!;
 }
 export async function searchOpportunities(params: URLSearchParams) {
+  if (demoMode) return searchDemoOpportunities(params);
   const page = Math.max(1, Math.min(10000, Number(params.get("page")) || 1));
   const size = 12;
   const where = searchConditions(params);
@@ -89,6 +95,7 @@ export async function searchOpportunities(params: URLSearchParams) {
   return { items, total: total[0]?.value || 0, page, pageSize: size };
 }
 export async function getPublicOpportunity(id: string) {
+  if (demoMode) return getDemoOpportunity(id);
   const [row] = await db()
     .select({ opportunity: opportunities, organization: organizations })
     .from(opportunities)

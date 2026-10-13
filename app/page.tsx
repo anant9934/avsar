@@ -11,6 +11,7 @@ import {
 import { FeaturedTabs, type FeaturedItem } from "@/components/FeaturedTabs";
 import { FaqTabs, JourneyTabs, PreviewTabs } from "@/components/PublicTabs";
 import { EventPing } from "@/components/EventPing";
+import { demoMode } from "@/lib/demo-opportunities";
 
 export const dynamic = "force-dynamic";
 const section = (eyebrow: string, title: string, description?: string) => (
@@ -313,9 +314,11 @@ export default async function Home() {
           {section(
             "CURRENT OPENINGS",
             "Explore opportunities worth your attention.",
-            "Browse current openings from approved publishers and review the information before you apply.",
+            demoMode
+              ? "Explore fictional examples in this development or preview build. No applications are accepted."
+              : "Browse current openings from approved publishers and review the information before you apply.",
           )}
-          <FeaturedTabs groups={groups} available={results.some(Boolean)} />
+          <FeaturedTabs groups={groups} available={results.some(Boolean)} demo={demoMode} />
         </div>
       </section>
       <section className="section">

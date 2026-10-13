@@ -11,7 +11,9 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:migrate:local": "node --env-file=.env.local ./node_modules/drizzle-kit/bin.cjs migrate",
+    "db:migrate:http:local": "node --env-file=.env.local --import tsx scripts/migrate-neon-http.ts",
     "admin:provision": "node --import tsx scripts/provision-admin.ts",
+    "admin:provision:http:local": "node --env-file=.env.local --import tsx scripts/provision-admin-http.ts",
     "lint": "eslint app src scripts tests"
   },
   "dependencies": {
@@ -23,6 +25,7 @@
     "zod": "4.6.6"
   },
   "devDependencies": {
+    "@neondatabase/serverless": "1.2.0",
     "@types/node": "20.19.37",
     "@types/pg": "8.15.5",
     "@types/react": "19.3.0",

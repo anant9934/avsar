@@ -3,7 +3,9 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { opportunities, organizations } from "@/db/schema";
 import { visibleConditions } from "@/lib/opportunities";
+import { demoMode } from "@/lib/demo-opportunities";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  if (demoMode) return [];
   const origin = process.env.APP_ORIGIN || "http://localhost:3000";
   const paths = [
     "",

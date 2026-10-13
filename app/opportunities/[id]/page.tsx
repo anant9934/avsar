@@ -7,6 +7,7 @@ import { ReportForm } from "@/components/ReportForm";
 import { EventPing } from "@/components/EventPing";
 import { OpportunityActions } from "@/components/OpportunityActions";
 import { federationReady } from "@/modules/identity/providers";
+import { demoMode } from "@/lib/demo-opportunities";
 export const dynamic = "force-dynamic";
 export async function generateMetadata({
   params,
@@ -22,6 +23,7 @@ export async function generateMetadata({
     return {
       title: `${row.opportunity.title} at ${row.organization.displayName} | AVSAR`,
       description: row.opportunity.description.slice(0, 155),
+      robots: demoMode ? { index: false, follow: false } : undefined,
       alternates: {
         canonical: new URL(`/opportunities/${id}`, origin).toString(),
       },
@@ -56,7 +58,7 @@ export default async function OpportunityDetail({
   if (!row) notFound();
   const { opportunity: o, organization: g } = row;
   const jobPosting =
-    o.type === "Job"
+    !demoMode && o.type === "Job"
       ? {
           "@context": "https://schema.org",
           "@type": "JobPosting",
@@ -95,14 +97,24 @@ export default async function OpportunityDetail({
           </span>
           <h1>{o.title}</h1>
           <p className="detail-org">
-            <Link className="text-link" href={`/organizations/${g.id}`}>
-              {g.displayName}
-            </Link>{" "}
+            {demoMode ? (
+              <span>{g.displayName}</span>
+            ) : (
+              <Link className="text-link" href={`/organizations/${g.id}`}>
+                {g.displayName}
+              </Link>
+            )}{" "}
             · {o.location}
           </p>
           <div className="detail-pills">
-            <span className="pill">Organization approved</span>
-            <span className="pill">Listing reviewed</span>
+            {demoMode ? (
+              <span className="pill">Fictional demo · No applications accepted</span>
+            ) : (
+              <>
+                <span className="pill">Organization approved</span>
+                <span className="pill">Listing reviewed</span>
+              </>
+            )}
             <span className="pill">
               {o.compensation || "Compensation not specified"}
             </span>
@@ -131,14 +143,18 @@ export default async function OpportunityDetail({
           </section>
           <section>
             <h2>Source and verification</h2>
-            <p>
-              Published{" "}
-              {o.publishedAt?.toLocaleDateString("en-IN") || "date unavailable"}
-              . Organization approval and listing review are separate checks.{" "}
-              {o.sourceCheckedAt
-                ? `Source last checked ${o.sourceCheckedAt.toLocaleDateString("en-IN")}.`
-                : "External source freshness has not been confirmed."}
-            </p>
+            {demoMode ? (
+              <p>This is a fictional preview record. No source, organization, or opening has been verified.</p>
+            ) : (
+              <p>
+                Published{" "}
+                {o.publishedAt?.toLocaleDateString("en-IN") || "date unavailable"}
+                . Organization approval and listing review are separate checks.{" "}
+                {o.sourceCheckedAt
+                  ? `Source last checked ${o.sourceCheckedAt.toLocaleDateString("en-IN")}.`
+                  : "External source freshness has not been confirmed."}
+              </p>
+            )}
             {o.sourceUrl && (
               <a
                 className="text-link"
@@ -154,11 +170,9 @@ export default async function OpportunityDetail({
       </div>
       <aside className="detail-side">
         <h2>Interested in this opportunity?</h2>
-        <p>
-          {o.deadline
-            ? `Apply by ${o.deadline.toLocaleDateString("en-IN")}.`
-            : "No deadline was supplied."}
-        </p>
+        <p>{demoMode ? "This is not an open position." : o.deadline
+          ? `Apply by ${o.deadline.toLocaleDateString("en-IN")}.`
+          : "No deadline was supplied."}</p>
         {o.applicationMethod === "external" && o.applicationUrl ? (
           <>
             <a
@@ -191,7 +205,7 @@ export default async function OpportunityDetail({
           Tell our review team about suspicious fees, impersonation or
           misleading details.
         </p>
-        <ReportForm opportunityId={o.id} />
+        {demoMode ? <p>Reports are unavailable for fictional examples.</p> : <ReportForm opportunityId={o.id} />}
       </aside>
     </div>
   );
