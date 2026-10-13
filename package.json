@@ -14,6 +14,7 @@
     "db:migrate:http:local": "node --env-file=.env.local --import tsx scripts/migrate-neon-http.ts",
     "admin:provision": "node --import tsx scripts/provision-admin.ts",
     "admin:provision:http:local": "node --env-file=.env.local --import tsx scripts/provision-admin-http.ts",
+    "recruiter:provision:http:local": "node --env-file=.env.local --env-file=.env.recruiter.local --import tsx scripts/provision-recruiter-http.ts",
     "lint": "eslint app src scripts tests"
   },
   "dependencies": {

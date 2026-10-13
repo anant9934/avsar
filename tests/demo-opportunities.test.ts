@@ -7,7 +7,10 @@ import {
 
 describe("preview opportunities", () => {
   it("marks every example as unapproved and without an application destination", () => {
-    expect(demoOpportunities.length).toBeGreaterThan(0);
+    expect(demoOpportunities).toHaveLength(7);
+    expect(new Set(demoOpportunities.map((item) => item.type))).toEqual(
+      new Set(["Job", "Internship", "Research", "Scholarship", "Hackathon"]),
+    );
     for (const item of demoOpportunities) {
       expect(item.title).toMatch(/^Demo:/);
       expect(item.status).toBe("demo");
