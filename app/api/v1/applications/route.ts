@@ -7,12 +7,13 @@ import { currentUser, validOrigin } from "@/lib/auth";
 import { entitlement } from "@/lib/entitlement";
 import { getPublicOpportunity } from "@/lib/opportunities";
 import { jsonError, parseBody } from "@/lib/api";
+import { recordEvent } from "@/lib/analytics";
 export async function GET() {
   try {
     const actor = await currentUser();
     if (!actor) return jsonError("Authentication required", 401);
     if (!(await entitlement(actor)).active)
-      return jsonError("Verified Core and Collaborate links required", 403);
+      return jsonError("Jobseeker access is unavailable for this account", 403);
     const items = await db()
       .select({ application: applications, title: opportunities.title })
       .from(applications)
@@ -33,7 +34,7 @@ export async function POST(req: Request) {
     const actor = await currentUser();
     if (!actor) return jsonError("Authentication required", 401);
     if (!(await entitlement(actor)).active)
-      return jsonError("Verified Core and Collaborate links required", 403);
+      return jsonError("Jobseeker access is unavailable for this account", 403);
     const parsed = z
       .object({
         opportunityId: z.uuid(),
@@ -66,8 +67,10 @@ export async function POST(req: Request) {
       })
       .onConflictDoNothing()
       .returning({ id: applications.id });
-    if (item)
+    if (item) {
+      await recordEvent("application_started", actor.id);
       return NextResponse.json({ draftId: item.id, snapshot }, { status: 201 });
+    }
     const [existing] = await db()
       .select({
         id: applications.id,

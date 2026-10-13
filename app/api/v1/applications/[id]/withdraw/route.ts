@@ -17,7 +17,7 @@ export async function POST(
     const actor = await currentUser();
     if (!actor) return jsonError("Authentication required", 401);
     if (!(await entitlement(actor)).active)
-      return jsonError("Verified Core and Collaborate links required", 403);
+      return jsonError("Jobseeker access is unavailable for this account", 403);
     const result = await db().transaction(async (tx) => {
       const [row] = await tx
         .select()
@@ -33,14 +33,12 @@ export async function POST(
         .update(applications)
         .set({ status: "withdrawn" })
         .where(eq(applications.id, id));
-      await tx
-        .insert(applicationEvents)
-        .values({
-          applicationId: id,
-          actorId: actor.id,
-          fromStatus: row.status,
-          toStatus: "withdrawn",
-        });
+      await tx.insert(applicationEvents).values({
+        applicationId: id,
+        actorId: actor.id,
+        fromStatus: row.status,
+        toStatus: "withdrawn",
+      });
       return true;
     });
     return result

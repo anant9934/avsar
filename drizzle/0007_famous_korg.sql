@@ -1,0 +1,1 @@
+ALTER TABLE "external_identity_links" ADD COLUMN "authorized_at" timestamp with time zone;

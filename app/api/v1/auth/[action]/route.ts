@@ -13,6 +13,7 @@ import {
   currentUser,
 } from "@/lib/auth";
 import { jsonError, parseBody } from "@/lib/api";
+import { recordEvent } from "@/lib/analytics";
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ action: string }> },
@@ -25,6 +26,16 @@ export async function POST(
   }
   const body = await parseBody(req);
   if (action === "register") {
+    if (
+      body &&
+      typeof body === "object" &&
+      "role" in body &&
+      body.role !== "recruiter"
+    )
+      return jsonError(
+        "Jobseeker registration requires verified Core and Collaborate federation, which is not available yet",
+        503,
+      );
     const parsed = registerSchema.safeParse(body);
     if (!parsed.success)
       return jsonError(
@@ -40,8 +51,12 @@ export async function POST(
         })
         .returning({ id: users.id });
       await createSession(user.id);
+      await recordEvent("registration_completed", user.id);
       return NextResponse.json(
-        { ok: true, role: "recruiter" },
+        {
+          ok: true,
+          role: "recruiter",
+        },
         { status: 201 },
       );
     } catch {
@@ -68,6 +83,7 @@ export async function POST(
         return jsonError("Invalid credentials", 401);
       if (
         user.role !== "recruiter" &&
+        user.role !== "jobseeker" &&
         (!process.env.ADMIN_TOTP_SECRET ||
           !verifyTotp(parsed.data.otp || "", process.env.ADMIN_TOTP_SECRET))
       )

@@ -1,15 +1,51 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { getPublicOpportunity } from "@/lib/opportunities";
 import { ReportForm } from "@/components/ReportForm";
+import { EventPing } from "@/components/EventPing";
+import { OpportunityActions } from "@/components/OpportunityActions";
+import { federationReady } from "@/modules/identity/providers";
 export const dynamic = "force-dynamic";
-export default async function OpportunityDetail({
+export async function generateMetadata({
   params,
 }: {
   params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  if (!z.uuid().safeParse(id).success) return {};
+  try {
+    const row = await getPublicOpportunity(id);
+    if (!row) return {};
+    const origin = process.env.APP_ORIGIN || "http://localhost:3000";
+    return {
+      title: `${row.opportunity.title} at ${row.organization.displayName} | AVSAR`,
+      description: row.opportunity.description.slice(0, 155),
+      alternates: {
+        canonical: new URL(`/opportunities/${id}`, origin).toString(),
+      },
+    };
+  } catch {
+    return {};
+  }
+}
+
+export default async function OpportunityDetail({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { id } = await params;
+  const rawFilters = await searchParams;
+  const retained = new URLSearchParams();
+  for (const key of ["q", "location", "type", "mode", "sort", "page"]) {
+    const value = rawFilters[key];
+    if (typeof value === "string" && value.length <= 100)
+      retained.set(key, value);
+  }
   if (!z.uuid().safeParse(id).success) notFound();
   let row: Awaited<ReturnType<typeof getPublicOpportunity>>;
   try {
@@ -19,10 +55,38 @@ export default async function OpportunityDetail({
   }
   if (!row) notFound();
   const { opportunity: o, organization: g } = row;
+  const jobPosting =
+    o.type === "Job"
+      ? {
+          "@context": "https://schema.org",
+          "@type": "JobPosting",
+          title: o.title,
+          description: `${o.description}\n\nResponsibilities: ${o.responsibilities}\n\nRequirements: ${o.requirements}`,
+          datePosted: o.publishedAt?.toISOString(),
+          ...(o.deadline ? { validThrough: o.deadline.toISOString() } : {}),
+          hiringOrganization: {
+            "@type": "Organization",
+            name: g.displayName,
+            sameAs: g.website,
+          },
+          jobLocationType: o.mode === "Remote" ? "TELECOMMUTE" : undefined,
+          employmentType: o.employmentType || undefined,
+          identifier: { "@type": "PropertyValue", name: "AVSAR", value: o.id },
+        }
+      : null;
   return (
     <div className="container detail-layout">
+      <EventPing kind="listing_opened" />
+      {jobPosting && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(jobPosting).replaceAll("<", "\\u003c"),
+          }}
+        />
+      )}
       <div>
-        <Link className="back-link" href="/opportunities">
+        <Link className="back-link" href={`/opportunities?${retained}`}>
           ← Back to opportunities
         </Link>
         <article className="detail">
@@ -110,13 +174,12 @@ export default async function OpportunityDetail({
               application on AVSAR.
             </small>
           </>
-        ) : (
-          <div className="notice">
-            Internal applications require verified Core and Collaborate
-            accounts. Those provider connections are not configured yet;
-            applications are unavailable.
-          </div>
-        )}
+        ) : null}
+        <OpportunityActions
+          id={o.id}
+          internal={o.applicationMethod === "internal"}
+          enabled={federationReady()}
+        />
         <p>
           <Link className="text-link" href="/me">
             Learn about saving and applying with AVSAR →

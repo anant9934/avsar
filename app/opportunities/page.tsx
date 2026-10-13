@@ -1,6 +1,13 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { searchOpportunities } from "@/lib/opportunities";
+import { EventPing } from "@/components/EventPing";
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = {
+  title: "Find Opportunities | AVSAR",
+  description:
+    "Search reviewed jobs, internships, research positions and other public opportunities on AVSAR.",
+};
 type Props = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
@@ -20,6 +27,10 @@ export default async function Opportunities({ searchParams }: Props) {
   prev.set("page", String(page - 1));
   return (
     <>
+      {params.get("q") && <EventPing kind="search_started" />}
+      {(params.get("type") || params.get("mode") || params.get("location")) && (
+        <EventPing kind="filter_used" />
+      )}
       <div className="route-head">
         <div className="container">
           <span className="eyebrow">THE OPPORTUNITY MARKETPLACE</span>

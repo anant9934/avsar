@@ -4,6 +4,7 @@ export default defineConfig({
   out: "./drizzle",
   dialect: "postgresql",
   dbCredentials: {
-    url: process.env.DATABASE_DIRECT_URL || process.env.DATABASE_URL || "",
+    // Migrations must never fall back to the runtime's pooled URL.
+    url: process.env.DATABASE_DIRECT_URL || "",
   },
 });

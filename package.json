@@ -10,6 +10,7 @@
     "test": "vitest run",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
+    "db:migrate:local": "node --env-file=.env.local ./node_modules/drizzle-kit/bin.cjs migrate",
     "admin:provision": "node --import tsx scripts/provision-admin.ts",
     "lint": "eslint app src scripts tests"
   },

@@ -8,7 +8,7 @@ const pages: Record<
   "how-it-works": {
     eyebrow: "THE AVSAR JOURNEY",
     title: "Discover, understand, apply.",
-    lead: "Public discovery is free. Account linking begins only when a student chooses a private jobseeker action.",
+    lead: "Public discovery is free. Private jobseeker actions will require verified Core and Collaborate accounts.",
     sections: [
       [
         "Discover",
@@ -16,7 +16,7 @@ const pages: Record<
       ],
       [
         "Connect",
-        "Jobseeker accounts require separate, verified Core and Collaborate identities. Optional profile sharing is your choice.",
+        "Verified Core and Collaborate account linking is required for jobseeker actions. It is not connected yet.",
       ],
       [
         "Apply",
@@ -107,8 +107,8 @@ const pages: Record<
     lead: "Anonymous visitors can report suspicious activity or request accessibility assistance. Submission requires the reporting service to be configured.",
     sections: [
       [
-        "Account linking",
-        "Core and Collaborate connections are not available until both providers supply secure federation contracts.",
+        "AVSAR accounts",
+        "Public browsing is open. Saving and applying through AVSAR will require verified Core and Collaborate links, which are not available yet.",
       ],
       [
         "Recruiter review",
@@ -119,11 +119,11 @@ const pages: Record<
   privacy: {
     eyebrow: "PRIVACY",
     title: "Private by default.",
-    lead: "This prelaunch implementation stores AVSAR owned records separately from Core and Collaborate. A final legal privacy notice and retention schedule are required before production launch.",
+    lead: "This implementation stores AVSAR owned records separately from Core and Collaborate. A final legal privacy notice and retention schedule are required before production launch.",
     sections: [
       [
         "Profile sharing",
-        "Required identity proof is separate from optional profile import and public visibility.",
+        "AVSAR account access is separate from any optional future ecosystem profile import or public visibility.",
       ],
       [
         "Applications",
@@ -133,12 +133,16 @@ const pages: Record<
         "Requests",
         "Formal access, deletion and correction procedures are pending approved policy and operational setup.",
       ],
+      [
+        "Cookies and usage data",
+        "AVSAR uses an essential session cookie to keep signed-in accounts secure. The site records limited page and action events for service analytics. Optional advertising cookies are not used, so there are no marketing cookie choices to configure at this stage.",
+      ],
     ],
   },
   legal: {
     eyebrow: "LEGAL",
     title: "Prelaunch legal information.",
-    lead: "AVSAR is not open for live candidate account creation or payments. Approved terms, recruitment policies and jurisdictional review are required before launch.",
+    lead: "AVSAR account creation is available. Paid checkout is not active. Approved terms and recruitment policies are required before production launch.",
     sections: [
       [
         "Public listings",

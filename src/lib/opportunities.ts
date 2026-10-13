@@ -9,6 +9,7 @@ import {
   asc,
   count,
   SQL,
+  isNotNull,
 } from "drizzle-orm";
 import { db } from "@/db";
 import { opportunities, organizations } from "@/db/schema";
@@ -43,6 +44,8 @@ export function searchConditions(params: URLSearchParams) {
     clauses.push(
       ilike(opportunities.location, `%${location.replace(/[\\%_]/g, "\\$&")}%`),
     );
+  if (params.get("sort") === "closing")
+    clauses.push(isNotNull(opportunities.deadline));
   return and(...clauses)!;
 }
 export async function searchOpportunities(params: URLSearchParams) {
@@ -50,9 +53,11 @@ export async function searchOpportunities(params: URLSearchParams) {
   const size = 12;
   const where = searchConditions(params);
   const order =
-    params.get("sort") === "oldest"
-      ? asc(opportunities.publishedAt)
-      : desc(opportunities.publishedAt);
+    params.get("sort") === "closing"
+      ? asc(opportunities.deadline)
+      : params.get("sort") === "oldest"
+        ? asc(opportunities.publishedAt)
+        : desc(opportunities.publishedAt);
   const [items, total] = await Promise.all([
     db()
       .select({
@@ -60,6 +65,7 @@ export async function searchOpportunities(params: URLSearchParams) {
         title: opportunities.title,
         type: opportunities.type,
         description: opportunities.description,
+        requirements: opportunities.requirements,
         location: opportunities.location,
         mode: opportunities.mode,
         compensation: opportunities.compensation,

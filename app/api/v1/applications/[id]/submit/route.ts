@@ -13,6 +13,7 @@ import { currentUser, validOrigin } from "@/lib/auth";
 import { entitlement } from "@/lib/entitlement";
 import { jsonError } from "@/lib/api";
 import { isPublicListing } from "@/lib/workflows";
+import { recordEvent } from "@/lib/analytics";
 export async function POST(
   _: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -24,7 +25,7 @@ export async function POST(
     const actor = await currentUser();
     if (!actor) return jsonError("Authentication required", 401);
     if (!(await entitlement(actor)).active)
-      return jsonError("Verified Core and Collaborate links required", 403);
+      return jsonError("Jobseeker access is unavailable for this account", 403);
     const result = await db().transaction(async (tx) => {
       const [row] = await tx
         .select({
@@ -61,24 +62,22 @@ export async function POST(
         .update(applications)
         .set({ status: "submitted", submittedAt: new Date() })
         .where(eq(applications.id, id));
-      await tx
-        .insert(applicationEvents)
-        .values({
-          applicationId: id,
-          actorId: actor.id,
-          fromStatus: "draft",
-          toStatus: "submitted",
-        });
-      await tx
-        .insert(notifications)
-        .values({
-          recipientId: row.organization.ownerId,
-          category: "application_submitted",
-          payload: { applicationId: id, opportunityId: row.opportunity.id },
-          state: "pending",
-        });
+      await tx.insert(applicationEvents).values({
+        applicationId: id,
+        actorId: actor.id,
+        fromStatus: "draft",
+        toStatus: "submitted",
+      });
+      await tx.insert(notifications).values({
+        recipientId: row.organization.ownerId,
+        category: "application_submitted",
+        payload: { applicationId: id, opportunityId: row.opportunity.id },
+        state: "pending",
+      });
       return { receipt: id, alreadySubmitted: false };
     });
+    if (!("error" in result) && !result.alreadySubmitted)
+      await recordEvent("application_submitted", actor.id);
     return "error" in result
       ? jsonError(result.error!, result.status)
       : NextResponse.json(result);

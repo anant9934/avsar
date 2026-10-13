@@ -5,6 +5,7 @@ import { organizations } from "@/db/schema";
 import { actorForWrite, jsonError, parseBody } from "@/lib/api";
 import { organizationSchema } from "@/lib/validation";
 import { currentUser } from "@/lib/auth";
+import { recordEvent } from "@/lib/analytics";
 export async function GET() {
   const actor = await currentUser();
   if (!actor || actor.role !== "recruiter")
@@ -33,5 +34,6 @@ export async function POST(req: Request) {
     .insert(organizations)
     .values({ ...parsed.data, ownerId: actor.id, status: "submitted" })
     .returning();
+  await recordEvent("employer_verification_submitted", actor.id);
   return NextResponse.json({ organization: org }, { status: 201 });
 }

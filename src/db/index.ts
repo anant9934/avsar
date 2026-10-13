@@ -8,6 +8,7 @@ export function db() {
   pool ??= new Pool({
     connectionString: process.env.DATABASE_URL,
     max: 5,
+    connectionTimeoutMillis: 3000,
     ssl: { rejectUnauthorized: true },
   });
   return drizzle(pool, { schema });

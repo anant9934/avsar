@@ -7,6 +7,7 @@ import { currentUser, validOrigin } from "@/lib/auth";
 import { entitlement } from "@/lib/entitlement";
 import { getPublicOpportunity } from "@/lib/opportunities";
 import { jsonError, parseBody } from "@/lib/api";
+import { recordEvent } from "@/lib/analytics";
 async function gate(id: string) {
   if (!z.uuid().safeParse(id).success)
     return { error: jsonError("Not found", 404) };
@@ -14,7 +15,7 @@ async function gate(id: string) {
   if (!actor) return { error: jsonError("Authentication required", 401) };
   if (!(await entitlement(actor)).active)
     return {
-      error: jsonError("Verified Core and Collaborate links required", 403),
+      error: jsonError("Jobseeker access is unavailable for this account", 403),
     };
   return { actor };
 }
@@ -44,6 +45,7 @@ export async function POST(
         target: [saved.userId, saved.opportunityId],
         set: { note: note.data.note || "" },
       });
+    await recordEvent("opportunity_saved", auth.actor!.id);
     return NextResponse.json({ ok: true });
   } catch {
     return jsonError("Save unavailable", 503);

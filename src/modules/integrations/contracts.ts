@@ -23,6 +23,8 @@ export type IdentityProof = {
   audience: string;
   expiresAt: string;
   verifiedAt: string;
+  authorizedAt: string;
+  accountStatus: "active" | "suspended";
 };
 export type AssessmentEvent = {
   eventId: string;

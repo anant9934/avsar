@@ -18,7 +18,16 @@ export default function Login() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      router.push(data.role === "recruiter" ? "/recruiter" : "/admin");
+      const next = new URLSearchParams(window.location.search).get("next");
+      const destination =
+        data.role === "recruiter"
+          ? "/recruiter"
+          : data.role === "jobseeker"
+            ? "/me"
+            : "/admin";
+      router.push(
+        next && /^\/(?!\/)[^\\\r\n]*$/.test(next) ? next : destination,
+      );
       router.refresh();
     } catch (e) {
       setMessage(e instanceof Error ? e.message : "Sign in failed");
@@ -31,7 +40,9 @@ export default function Login() {
       <form className="form-card" onSubmit={submit}>
         <span className="eyebrow">SECURE WORKSPACE</span>
         <h1>Welcome back.</h1>
-        <p>Sign in to your recruiter or provisioned administrator account.</p>
+        <p>
+          Sign in to your AVSAR jobseeker, recruiter or administrator account.
+        </p>
         <label>
           Email
           <input name="email" type="email" autoComplete="email" required />
@@ -57,8 +68,21 @@ export default function Login() {
         <button disabled={busy}>{busy ? "Signing in…" : "Sign in ↗"}</button>
         <p role="alert">{message}</p>
         <p>
-          Hiring for the first time?{" "}
-          <Link href="/register">Create recruiter account</Link>
+          New to AVSAR?{" "}
+          <Link
+            href="/register"
+            onClick={(event) => {
+              const next = new URLSearchParams(window.location.search).get(
+                "next",
+              );
+              if (next && /^\/(?!\/)[^\\\r\n]*$/.test(next)) {
+                event.preventDefault();
+                router.push(`/register?next=${encodeURIComponent(next)}`);
+              }
+            }}
+          >
+            Create an account
+          </Link>
         </p>
       </form>
     </div>

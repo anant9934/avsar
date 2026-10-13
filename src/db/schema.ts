@@ -149,6 +149,7 @@ export const identityLinks = pgTable(
     issuer: text("issuer").notNull(),
     subject: text("subject").notNull(),
     status: text("status").notNull(),
+    authorizedAt: timestamp("authorized_at", { withTimezone: true }),
     verifiedAt: timestamp("verified_at", { withTimezone: true }).notNull(),
     createdAt: created(),
   },
@@ -230,4 +231,70 @@ export const notifications = pgTable("notifications", {
   payload: jsonb("payload").notNull(),
   state: text("state").notNull().default("pending"),
   createdAt: created(),
+});
+export const salesInquiries = pgTable(
+  "sales_inquiries",
+  {
+    id: id(),
+    contactName: text("contact_name").notNull(),
+    workEmail: text("work_email").notNull(),
+    organization: text("organization").notNull(),
+    website: text("website"),
+    hiringVolume: text("hiring_volume").notNull(),
+    interest: text("interest").notNull(),
+    message: text("message").notNull(),
+    senderHash: text("sender_hash").notNull(),
+    status: text("status").notNull().default("new"),
+    createdAt: created(),
+  },
+  (t) => [index("sales_inquiries_sender_idx").on(t.senderHash, t.createdAt)],
+);
+export const siteContent = pgTable("site_content", {
+  key: text("key").primaryKey(),
+  publishedVersion: integer("published_version"),
+  latestVersion: integer("latest_version").notNull().default(0),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
+export const siteContentVersions = pgTable(
+  "site_content_versions",
+  {
+    id: id(),
+    key: text("key")
+      .references(() => siteContent.key)
+      .notNull(),
+    version: integer("version").notNull(),
+    state: text("state").notNull(),
+    body: jsonb("body").notNull(),
+    actorId: uuid("actor_id")
+      .references(() => users.id)
+      .notNull(),
+    createdAt: created(),
+  },
+  (t) => [uniqueIndex("site_content_key_version_unique").on(t.key, t.version)],
+);
+export const publicEvents = pgTable(
+  "public_events",
+  {
+    id: id(),
+    kind: text("kind").notNull(),
+    visitorHash: text("visitor_hash").notNull(),
+    createdAt: created(),
+  },
+  (t) => [index("public_events_kind_time_idx").on(t.kind, t.createdAt)],
+);
+export const employerPlans = pgTable("employer_plans", {
+  id: id(),
+  name: text("name").notNull().unique(),
+  priceLabel: text("price_label").notNull(),
+  listingLimit: integer("listing_limit"),
+  seatLimit: integer("seat_limit"),
+  features: jsonb("features").notNull(),
+  approvedBy: uuid("approved_by")
+    .references(() => users.id)
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
 });

@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { ContentEditor } from "@/components/ContentEditor";
+import { PlanEditor } from "@/components/PlanEditor";
 type Org = {
   id: string;
   legalName: string;
@@ -29,6 +31,17 @@ type Report = {
   details: string;
   opportunityId: string | null;
 };
+type SalesInquiry = {
+  id: string;
+  contactName: string;
+  workEmail: string;
+  organization: string;
+  hiringVolume: string;
+  interest: string;
+  message: string;
+  status: string;
+};
+const staffRoles = ["super_admin", "verification_officer", "listing_moderator"];
 export default function Admin() {
   const [actor, setActor] = useState<{ role: string } | null | undefined>();
   const [queue, setQueue] = useState<{
@@ -39,6 +52,15 @@ export default function Admin() {
     reports: Report[];
   } | null>(null);
   const [message, setMessage] = useState("");
+  const [sales, setSales] = useState<SalesInquiry[]>([]);
+  const [analytics, setAnalytics] = useState<{
+    events: { kind: string; total: number }[];
+    operational: {
+      publishedListings: number;
+      approvedOrganizations: number;
+      submittedApplications: number;
+    };
+  } | null>(null);
   const [busy, setBusy] = useState(false);
   async function load() {
     try {
@@ -46,10 +68,16 @@ export default function Admin() {
       if (!sessionRes.ok) throw new Error("Session service unavailable");
       const session = await sessionRes.json();
       setActor(session.actor);
-      if (!session.actor || session.actor.role === "recruiter") return;
+      if (!session.actor || !staffRoles.includes(session.actor.role)) return;
       const res = await fetch("/api/v1/admin/review-queue");
       if (!res.ok) throw new Error("Review queue unavailable");
       setQueue(await res.json());
+      if (session.actor.role === "super_admin") {
+        const salesRes = await fetch("/api/v1/admin/sales-inquiries");
+        if (salesRes.ok) setSales((await salesRes.json()).items);
+      }
+      const metricsRes = await fetch("/api/v1/admin/analytics");
+      if (metricsRes.ok) setAnalytics(await metricsRes.json());
     } catch (e) {
       setMessage(e instanceof Error ? e.message : "Unavailable");
     }
@@ -119,7 +147,7 @@ export default function Admin() {
       </div>
       {actor === undefined ? (
         <div className="empty">Loading review queue…</div>
-      ) : !actor || actor.role === "recruiter" ? (
+      ) : !actor || !staffRoles.includes(actor.role) ? (
         <div className="empty">
           <h2>Authorized staff only</h2>
           <Link href="/login">Sign in ↗</Link>
@@ -326,6 +354,59 @@ export default function Admin() {
               <p>No open reports.</p>
             )}
           </section>
+          <section className="panel">
+            <h2>Operational analytics</h2>
+            {analytics ? (
+              <>
+                <p>
+                  Published listings: {analytics.operational.publishedListings}{" "}
+                  · Approved organizations:{" "}
+                  {analytics.operational.approvedOrganizations} · Submitted
+                  AVSAR applications:{" "}
+                  {analytics.operational.submittedApplications}
+                </p>
+                <h3>Events · last 30 days</h3>
+                {analytics.events.map((event) => (
+                  <p key={event.kind}>
+                    {event.kind.replaceAll("_", " ")}: {event.total}
+                  </p>
+                ))}
+              </>
+            ) : (
+              <p>Analytics unavailable.</p>
+            )}
+          </section>
+          {actor.role === "super_admin" && (
+            <>
+              <ContentEditor />
+              <PlanEditor />
+            </>
+          )}
+          {actor.role === "super_admin" && (
+            <section className="panel">
+              <h2>
+                Sales enquiries <span>{sales.length}</span>
+              </h2>
+              {sales.length ? (
+                sales.map((lead) => (
+                  <div className="review-item" key={lead.id}>
+                    <h3>{lead.organization}</h3>
+                    <p>
+                      {lead.contactName} · {lead.workEmail}
+                    </p>
+                    <p>
+                      {lead.interest} · {lead.hiringVolume} hires ·{" "}
+                      {lead.status}
+                    </p>
+                    <p>{lead.message}</p>
+                    <small>Reference: {lead.id}</small>
+                  </div>
+                ))
+              ) : (
+                <p>No sales enquiries.</p>
+              )}
+            </section>
+          )}
         </div>
       )}
       <p role="status" className="status-message">

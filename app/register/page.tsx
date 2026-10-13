@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { EventPing } from "@/components/EventPing";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 export default function Register() {
@@ -28,12 +29,19 @@ export default function Register() {
   }
   return (
     <div className="auth-wrap">
+      <EventPing kind="registration_initiated" />
+      <EventPing kind="employer_registration_initiated" />
       <form className="form-card" onSubmit={submit}>
         <span className="eyebrow">FOR EMPLOYERS</span>
         <h1>Create a recruiter account.</h1>
         <p>
-          Registration opens a private workspace. Your organization must pass
-          administrator review before it can publish.
+          Recruiter registration opens a private workspace. Your organization
+          and each listing require review before publication.
+        </p>
+        <p>
+          Jobseeker registration will open after verified AI Tathastu Core and
+          Collaborate account linking is available. Public opportunities remain
+          open to everyone.
         </p>
         <label>
           Work email

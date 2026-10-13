@@ -10,7 +10,7 @@ export async function GET() {
     const actor = await currentUser();
     if (!actor) return jsonError("Authentication required", 401);
     if (!(await entitlement(actor)).active)
-      return jsonError("Verified Core and Collaborate links required", 403);
+      return jsonError("Jobseeker access is unavailable for this account", 403);
     const items = await db()
       .select({ save: saved, opportunity: opportunities })
       .from(saved)
